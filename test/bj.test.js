@@ -82,8 +82,26 @@ var tb = eng.tables();
 T('tabel hard 16v10 = H', tb.hard['16v10'] === 'H');
 T('tabel pair Av6 = P', tb.pair['Av6'] === 'P');
 
+// ---- 9. six card charlie ----
+var engC = E.build({ s17: true, bjPays: 1.5, das: true, charlie: 6 });
+// 5 kartu hard 14 (2,2,3,3,4) vs 6
+var c14off = eng.decide([0, 0, 1, 1, 2], R['6']);
+var c14on = engC.decide([0, 0, 1, 1, 2], R['6']);
+T('5-card hard 14 vs 6 tanpa charlie -> S', c14off.action === 'S');
+T('5-card hard 14 vs 6 dgn charlie -> H', c14on.action === 'H', c14on.alts.H.toFixed(4));
+// 5 kartu hard 16 (2,2,3,4,5) vs 6 -> tetap S walau charlie
+var c16on = engC.decide([0, 0, 1, 2, 3], R['6']);
+T('5-card hard 16 vs 6 dgn charlie -> S', c16on.action === 'S');
+// charlie nurunin house edge
+var gevC = engC.gameEV();
+T('charlie nurunin house edge', gevC > gev && (-gevC * 100) > 0.30 && (-gevC * 100) < 0.55, (-gevC * 100).toFixed(3) + '%');
+// tanpa charlie eksplisit = default (mati)
+var engC0 = E.build({ s17: true, bjPays: 1.5, das: true, charlie: 0 });
+T('charlie:0 = default', Math.abs(engC0.gameEV() - gev) < 1e-12);
+
 var dt = Date.now() - t0;
 console.log('\n' + pass + ' lolos, ' + fail + ' gagal');
 console.log('house edge (S17, 3:2, DAS): ' + (-gev * 100).toFixed(3) + '%');
+console.log('house edge + six card charlie: ' + (-gevC * 100).toFixed(3) + '%');
 console.log('waktu: ' + dt + 'ms');
 process.exit(fail ? 1 : 0);

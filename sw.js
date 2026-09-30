@@ -1,4 +1,4 @@
-var C = 'bj-win-v1';
+var C = 'bj-win-v2';
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(C).then(function (c) {
     return c.addAll(['./index.html', './app.js', './engine.js', './manifest.json']);

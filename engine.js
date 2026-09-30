@@ -1,7 +1,7 @@
 /* ============================================================
    BJ Win Logic — engine blackjack basic strategy (EXACT EV)
    Model: infinite deck, dealer S17/H17 configurable, BJ 3:2/6:5,
-   double after split (DAS) configurable.
+   double after split (DAS) configurable, six card charlie optional.
    Semua keputusan = argmax EV eksak via enumerasi + memoization.
    UMD: browser (window.BJEngine) & Node (module.exports).
    ============================================================ */
@@ -37,6 +37,7 @@
     var s17 = cfg.s17 !== false;
     var bjPays = cfg.bjPays || 1.5;
     var das = cfg.das !== false;
+    var charlieN = cfg.charlie === undefined ? 0 : cfg.charlie; // 0 = mati, 6 = six card charlie
 
     /* ---------- dealer ---------- */
     function playDealer(total, soft, memo) {
@@ -89,24 +90,28 @@
     }
 
     /* ---------- pemain (rekursi + memo per upcard) ---------- */
+    // nc = jumlah kartu di tangan (dibutuhkan utk aturan charlie)
     function makePlayer(u) {
       var memo = {};
-      function best(total, soft) { // tanpa double
-        var key = total + '|' + (soft ? 1 : 0);
+      function best(total, soft, nc) { // tanpa double
+        var key = total + '|' + (soft ? 1 : 0) + '|' + nc;
         if (memo[key]) return memo[key];
         var s = sev(total, u), h = 0;
         for (var r = 0; r < 13; r++) {
           var t = addC(total, soft, r);
-          h += (t.total > 21 ? -1 : best(t.total, t.soft).ev) / 13;
+          if (t.total > 21) h += -1 / 13;
+          else if (charlieN && nc + 1 >= charlieN) h += 1 / 13; // charlie: kartu ke-N tanpa bust = menang otomatis
+          else h += best(t.total, t.soft, nc + 1).ev / 13;
         }
         var res = h > s ? { ev: h, act: 'H' } : { ev: s, act: 'S' };
         return (memo[key] = res);
       }
-      function bestD(total, soft) { // boleh double (2 kartu pertama)
+      function bestD(total, soft, nc) { // boleh double (2 kartu pertama)
         var s = sev(total, u), h = 0, dd = 0;
         for (var r = 0; r < 13; r++) {
           var t = addC(total, soft, r);
-          h += (t.total > 21 ? -1 : best(t.total, t.soft).ev) / 13;
+          var hev = t.total > 21 ? -1 : (charlieN && nc + 1 >= charlieN ? 1 : best(t.total, t.soft, nc + 1).ev);
+          h += hev / 13;
           dd += (t.total > 21 ? -1 : sev(t.total, u)) / 13;
         }
         dd *= 2;
@@ -128,7 +133,7 @@
       }
       for (r = 0; r < 13; r++) {
         var t0 = addC(v(rank), false, r);
-        var b = das ? p.bestD(t0.total, t0.soft) : p.best(t0.total, t0.soft);
+        var b = das ? p.bestD(t0.total, t0.soft, 2) : p.best(t0.total, t0.soft, 2);
         e += b.ev / 13;
       }
       return { ev: 2 * e, act: 'P' };
@@ -151,12 +156,12 @@
       }
       var pair = n === 2 && playerRanks[0] === playerRanks[1];
       var canD = n === 2;
-      var base = canD ? p.bestD(t.total, t.soft) : p.best(t.total, t.soft);
+      var base = canD ? p.bestD(t.total, t.soft, n) : p.best(t.total, t.soft, n);
       // EV tiap aksi utk ditampilkan
       var s = sev(t.total, u), h = 0, dd = null;
       for (var r = 0; r < 13; r++) {
         var t2 = addC(t.total, t.soft, r);
-        h += (t2.total > 21 ? -1 : p.best(t2.total, t2.soft).ev) / 13;
+        h += (t2.total > 21 ? -1 : (charlieN && n + 1 >= charlieN ? 1 : p.best(t2.total, t2.soft, n + 1).ev)) / 13;
       }
       if (canD) {
         dd = 0;
@@ -200,8 +205,8 @@
       var upRank = { 1: 12, 2: 0, 3: 1, 4: 2, 5: 3, 6: 4, 7: 5, 8: 6, 9: 7, 10: 8 };
       for (var u = 1; u <= 10; u++) {
         var ur = upRank[u], p = P(ur), t, s;
-        for (t = 4; t <= 21; t++) hard[t + 'v' + u] = p.bestD(t, false).act;
-        for (s = 13; s <= 21; s++) soft[s + 'v' + u] = p.bestD(s, true).act;
+        for (t = 4; t <= 21; t++) hard[t + 'v' + u] = p.bestD(t, false, 2).act;
+        for (s = 13; s <= 21; s++) soft[s + 'v' + u] = p.bestD(s, true, 2).act;
         [['A', 12], ['2', 0], ['3', 1], ['4', 2], ['5', 3], ['6', 4], ['7', 5], ['8', 6], ['9', 7], ['10', 8]]
           .forEach(function (pr) { pair[pr[0] + 'v' + u] = decide([pr[1], pr[1]], ur).action; });
       }
@@ -219,7 +224,7 @@
     }
 
     return {
-      cfg: { s17: s17, bjPays: bjPays, das: das },
+      cfg: { s17: s17, bjPays: bjPays, das: das, charlie: charlieN },
       decide: decide, gameEV: gameEV, tables: tables, dealerBust: dealerBust,
       handName: handName, RANKS: RANKS, ACT_NAME: ACT_NAME, upv: upv, v: v
     };

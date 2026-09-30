@@ -13,10 +13,10 @@
   function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
 
   /* ---------- engine ---------- */
-  var cfg = load('bj_cfg', { s17: true, bjPays: 1.5 });
+  var cfg = load('bj_cfg', { s17: true, bjPays: 1.5, charlie: true });
   var eng = null, edge = null;
   function rebuild() {
-    eng = BJEngine.build({ s17: cfg.s17, bjPays: cfg.bjPays, das: true });
+    eng = BJEngine.build({ s17: cfg.s17, bjPays: cfg.bjPays, das: true, charlie: cfg.charlie ? 6 : 0 });
     edge = eng.gameEV();
   }
   rebuild();
@@ -39,19 +39,23 @@
   function chipGroup(id, key, vals) {
     var el = $(id);
     el.querySelectorAll('.chip').forEach(function (c) {
-      var on = String(cfg[key]) === c.dataset.v || (key === 's17' && ((cfg.s17 && c.dataset.v === 's17') || (!cfg.s17 && c.dataset.v === 'h17')));
+      var on = String(cfg[key]) === c.dataset.v ||
+        (key === 's17' && ((cfg.s17 && c.dataset.v === 's17') || (!cfg.s17 && c.dataset.v === 'h17'))) ||
+        (key === 'charlie' && ((cfg.charlie && c.dataset.v === 'on') || (!cfg.charlie && c.dataset.v === 'off')));
       c.classList.toggle('on', on);
       c.addEventListener('click', function () {
         el.querySelectorAll('.chip').forEach(function (x) { x.classList.remove('on'); });
         c.classList.add('on');
         if (key === 's17') cfg.s17 = c.dataset.v === 's17';
         if (key === 'bjPays') cfg.bjPays = c.dataset.v === '32' ? 1.5 : 1.2;
+        if (key === 'charlie') cfg.charlie = c.dataset.v === 'on';
         save('bj_cfg', cfg); rebuild(); analyze(); renderInfo();
       });
     });
   }
   chipGroup('s17chips', 's17');
   chipGroup('bjchips', 'bjPays');
+  chipGroup('charliechips', 'charlie');
   $('nomchips').querySelectorAll('.chip').forEach(function (c) {
     c.addEventListener('click', function () { $('bet').value = c.dataset.v; save('bj_cfg', cfg); analyze(); });
   });
@@ -202,7 +206,9 @@
   /* ---------- info ---------- */
   function renderInfo() {
     $('cfgline').textContent = 'Bandar ' + (cfg.s17 ? 'stop di semua 17 (S17)' : 'hit soft 17 (H17)') +
-      ', blackjack bayar ' + (cfg.bjPays === 1.5 ? '3:2' : '6:5') + ', double after split diizinkan.';
+      ', blackjack bayar ' + (cfg.bjPays === 1.5 ? '3:2' : '6:5') + ', double after split diizinkan' +
+      (cfg.charlie ? ', six card charlie AKTIF (6 kartu tanpa bust = menang otomatis).' : ', tanpa six card charlie.') +
+      (cfg.charlie ? ' Dengan Charlie aktif, tangan 5 kartu (mis. hard 14 vs 6) lebih sering disuruh HIT.' : '');
     $('edgeline').textContent = (-edge * 100).toFixed(2) + '%';
     var tb = eng.tables(), html = '';
     function tbl(title, rows, keys) {

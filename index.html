@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>BJ Win Logic 🂡</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d1420">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0 auto;background:#0d1420;color:#e8e4d8;font-family:system-ui,-apple-system,sans-serif;max-width:520px;min-height:100vh}
+header{padding:14px 16px 8px;text-align:center}
+header h1{margin:0;font-size:22px}
+header p{margin:4px 0 0;color:#9aa3b2;font-size:12px}
+.tabs{display:flex;gap:6px;padding:10px 12px;position:sticky;top:0;background:#0d1420;z-index:5}
+.tabs button{flex:1;padding:10px 4px;border:0;border-radius:10px;background:#1a2334;color:#9aa3b2;font-size:13px;font-weight:700;cursor:pointer}
+.tabs button.on{background:#c9a227;color:#14100a}
+main{padding:4px 12px 40px}
+.card{background:#141c2e;border-radius:14px;padding:14px;margin:10px 0}
+.card h3{margin:0 0 10px;font-size:14px;color:#c9a227}
+.note{font-size:11px;color:#9aa3b2;margin:8px 0 0;line-height:1.5}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.chip{padding:8px 12px;border-radius:20px;border:2px solid #3a4a63;background:transparent;color:#9aa3b2;font-weight:700;font-size:13px;cursor:pointer}
+.chip.on{border-color:#c9a227;color:#c9a227;background:#c9a22718}
+.nomrow{display:flex;align-items:center;justify-content:space-between;margin-top:4px}
+.nomrow>span{font-size:13px;color:#9aa3b2}
+.nominput{display:flex;align-items:center;gap:6px;background:#0d1420;border:2px solid #3a4a63;border-radius:10px;padding:8px 12px}
+.nominput span{color:#c9a227;font-weight:800;font-size:14px}
+.nominput input{background:transparent;border:0;color:#e8e4d8;font-size:16px;font-weight:800;width:110px;text-align:right;outline:none}
+#nomchips{margin-top:8px}
+.seg{display:flex;gap:6px;margin-bottom:10px}
+.seg button{flex:1;padding:10px;border:0;border-radius:10px;background:#1a2334;color:#9aa3b2;font-size:14px;font-weight:800;cursor:pointer}
+.seg button.on{background:#c9a227;color:#14100a}
+.rankpad{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:10px}
+.rankpad button{padding:10px 0;border:2px solid #3a4a63;border-radius:8px;background:#f5f0e6;color:#1a2230;font-weight:900;font-size:15px;cursor:pointer}
+.rankpad button:active{transform:scale(.94)}
+.hands{display:flex;gap:10px;margin-bottom:10px}
+.hand{flex:1;background:#0d1420;border-radius:10px;padding:10px;min-height:86px}
+.hand h4{margin:0 0 6px;font-size:11px;color:#9aa3b2;font-weight:700}
+.hand .cards{display:flex;gap:5px;flex-wrap:wrap;min-height:38px}
+.mcard{width:34px;height:48px;background:#f5f0e6;color:#1a2230;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;border:2px solid #c9a227}
+.mcard.dealer{border-color:#7aa2ff}
+.hand .total{font-size:11px;color:#c9a227;margin-top:6px;font-weight:700}
+.btnrow{display:flex;gap:8px}
+.btn{flex:1;padding:11px;border:0;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;background:#2a3a55;color:#e8e4d8}
+.btn.gold{background:#c9a227;color:#14100a}
+.btn.win{background:#1e7a3c;color:#fff}
+.btn.lose{background:#a33327;color:#fff}
+.btn.push{background:#5a6578;color:#fff}
+.reshead{font-size:15px;font-weight:900;color:#7bff9e;margin-bottom:6px}
+.bigact{text-align:center;padding:18px 10px;border-radius:12px;margin:8px 0;background:#0d1420}
+.bigact .a{font-size:38px;font-weight:900;color:#c9a227;letter-spacing:2px}
+.bigact .sub{font-size:13px;color:#9aa3b2;margin-top:6px}
+.exprp{background:#c9a22718;border:1px solid #c9a22755;border-radius:10px;padding:10px;text-align:center;font-size:14px;margin:8px 0}
+.exprp b{color:#c9a227;font-size:18px}
+.exprp small{color:#9aa3b2;display:block;margin-top:2px;font-size:11px}
+.why{font-size:13px;line-height:1.55;color:#d8d4c8;background:#0d1420;border-radius:10px;padding:10px}
+.alts{margin-top:10px}
+.altstitle{font-size:12px;color:#9aa3b2;margin-bottom:6px}
+.alt{display:flex;justify-content:space-between;font-size:12px;padding:7px 10px;background:#0d1420;border-radius:8px;margin-bottom:5px}
+.alt b{color:#c9a227}
+.alt.best{border:1px solid #c9a22788}
+.prog{height:14px;background:#0d1420;border-radius:8px;overflow:hidden;margin:8px 0}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,#c9a227,#7bff9e);border-radius:8px;transition:width .3s}
+.mstat{display:flex;gap:8px;margin:8px 0}
+.mstat div{flex:1;background:#0d1420;border-radius:10px;padding:10px;text-align:center}
+.mstat small{display:block;color:#9aa3b2;font-size:10px}
+.mstat b{font-size:17px;color:#c9a227}
+.log{max-height:220px;overflow-y:auto;margin-top:8px}
+.logrow{display:flex;justify-content:space-between;font-size:12px;padding:6px 10px;background:#0d1420;border-radius:8px;margin-bottom:4px}
+.logrow b.w{color:#7bff9e}.logrow b.l{color:#e74c3c}.logrow b.p{color:#9aa3b2}
+.info h4{color:#c9a227;margin:14px 0 6px;font-size:14px}
+.info p,.info li{font-size:13px;line-height:1.6;color:#c9c5b8}
+.info ul{padding-left:18px;margin:6px 0}
+.warn{background:#3a2410;border:1px solid #c9a22755;border-radius:10px;padding:10px;font-size:12px;line-height:1.6;color:#e8cf9a}
+table.strat{width:100%;border-collapse:collapse;font-size:10px;margin-top:6px}
+table.strat th,table.strat td{padding:4px 2px;text-align:center;border:1px solid #2a3a55}
+table.strat th{background:#0d1420;color:#c9a227}
+td.aH{background:#1e3a5c;color:#fff}td.aS{background:#3a2a10;color:#ffd77a}
+td.aD{background:#1e5c33;color:#fff}td.aP{background:#5c1e4e;color:#fff}
+.ms{display:block;text-align:center;color:#5a6578;font-size:10px;margin-top:10px}
+.computing{text-align:center;padding:24px;color:#c9a227;font-weight:700}
+</style>
+</head>
+<body>
+<header>
+  <h1>🂡 BJ Win Logic</h1>
+  <p>Engine blackjack — exact EV per tangan, bukan tebakan</p>
+</header>
+<nav class="tabs">
+  <button data-t="main" class="on">🂡 Main</button>
+  <button data-t="misi">🎯 Misi</button>
+  <button data-t="info">ℹ️ Info</button>
+</nav>
+<main>
+  <section id="t-main">
+    <div class="card">
+      <h3>⚙️ Aturan meja</h3>
+      <div class="chips" id="s17chips">
+        <button class="chip on" data-v="s17">Bandar stop 17 (S17)</button>
+        <button class="chip" data-v="h17">Bandar hit soft 17 (H17)</button>
+      </div>
+      <div class="chips" id="bjchips">
+        <button class="chip on" data-v="32">Blackjack bayar 3:2</button>
+        <button class="chip" data-v="65">Blackjack bayar 6:5</button>
+      </div>
+      <div class="nomrow">
+        <span>Bet per tangan</span>
+        <div class="nominput"><span>Rp</span><input id="bet" type="number" inputmode="numeric" value="10000"></div>
+      </div>
+      <div class="chips" id="nomchips">
+        <button class="chip" data-v="1000">1rb</button>
+        <button class="chip" data-v="5000">5rb</button>
+        <button class="chip" data-v="10000">10rb</button>
+        <button class="chip" data-v="50000">50rb</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>🂡 Kartu — tap rank</h3>
+      <div class="seg" id="targetseg">
+        <button data-v="p" class="on">🂡 Kartu kamu</button>
+        <button data-v="d">🂠 Bandar (terbuka)</button>
+      </div>
+      <div class="rankpad" id="rankpad"></div>
+      <div class="hands">
+        <div class="hand"><h4>🂡 KAMU</h4><div class="cards" id="phand"></div><div class="total" id="ptotal"></div></div>
+        <div class="hand"><h4>🂠 BANDAR</h4><div class="cards" id="dhand"></div><div class="total" id="dtotal"></div></div>
+      </div>
+      <div class="btnrow">
+        <button class="btn" id="bUndo">⌫ Urungkan</button>
+        <button class="btn" id="bClear">✖ Reset</button>
+      </div>
+    </div>
+    <div class="card" id="rescard" style="display:none">
+      <h3>🎯 Keputusan</h3>
+      <div class="reshead" id="reshand"></div>
+      <div class="bigact"><div class="a" id="resact"></div><div class="sub" id="ressub"></div></div>
+      <div class="exprp"><b id="resev"></b><small>ekspektasi per tangan (Rp)</small></div>
+      <div class="why" id="reswhy"></div>
+      <div class="alts"><div class="altstitle">Perbandingan semua aksi (Rp):</div><div id="resalts"></div></div>
+      <p class="note" id="resnote"></p>
+    </div>
+  </section>
+  <section id="t-misi" style="display:none">
+    <div class="card">
+      <h3>🎯 Misi 10rb → 50rb</h3>
+      <div class="nomrow"><span>Modal saat ini</span>
+        <div class="nominput"><span>Rp</span><input id="mBank" type="number" inputmode="numeric" value="10000"></div></div>
+      <div class="nomrow" style="margin-top:8px"><span>Target</span>
+        <div class="nominput"><span>Rp</span><input id="mTarget" type="number" inputmode="numeric" value="50000"></div></div>
+      <div class="exprp" style="margin-top:12px">Bet yang disarankan: <b id="mBet">Rp 10.000</b>
+        <small>strategi bold: bet = min(modal, target − modal)</small></div>
+      <div class="prog"><i id="mProg" style="width:20%"></i></div>
+      <div class="mstat">
+        <div><small>Putaran</small><b id="mRounds">0</b></div>
+        <div><small>Menang</small><b id="mWins">0</b></div>
+        <div><small>Kalah</small><b id="mLoss">0</b></div>
+      </div>
+      <div class="btnrow">
+        <button class="btn win" id="mW">✅ Menang</button>
+        <button class="btn lose" id="mL">❌ Kalah</button>
+      </div>
+      <div class="btnrow" style="margin-top:8px">
+        <button class="btn push" id="mP">➖ Push</button>
+        <button class="btn gold" id="mBJ">🂡 Blackjack!</button>
+      </div>
+      <p class="note">Menang = +1× bet, Blackjack = +1.5×, Kalah = −1×, Push = tetap. Double/split: catat manual via Menang/Kalah sesuai hasil akhirnya.</p>
+      <div class="log" id="mLog"></div>
+      <div class="btnrow" style="margin-top:8px"><button class="btn" id="mReset">↺ Reset misi</button></div>
+    </div>
+  </section>
+  <section id="t-info" style="display:none">
+    <div class="card info">
+      <h4>📖 Cara pakai</h4>
+      <ul>
+        <li>Set aturan meja (S17/H17, bayaran blackjack) & bet per tangan.</li>
+        <li>Tap rank kartu kamu (2 kartu dulu), lalu 1 kartu bandar yang terbuka.</li>
+        <li>Engine kasih <b>HIT / STAND / DOUBLE / SPLIT</b> + ekspektasi rupiah.</li>
+        <li>Abis HIT di meja, tap kartu barunya di sini lalu lihat keputusan lagi.</li>
+        <li>Double cuma ditawarin di 2 kartu pertama. Split cuma untuk pair.</li>
+      </ul>
+      <h4>🎯 Misi 10rb → 50rb</h4>
+      <p>Tab Misi ngatur <b>bold play</b>: bet besar bertahap (10rb → 20rb → 40rb → 50rb). Peluang misi ±16% (simulasi 200rb sesi). Main tiap tangan tetap ikut engine.</p>
+      <h4>⚙️ Konfigurasi saat ini</h4>
+      <p id="cfgline"></p>
+      <p>House edge konfigurasi ini: <b id="edgeline"></b> (dihitung exact oleh engine, bukan angka hafalan).</p>
+      <h4>🗺️ Tabel strategi (dihitung engine)</h4>
+      <p style="font-size:11px">H=Hit S=Stand D=Double P=Split. Kolom = kartu bandar.</p>
+      <div id="strattables"></div>
+      <h4>⚠️ Jujur</h4>
+      <div class="warn">Blackjack basic strategy optimal pun RTP-nya di bawah 100% (house edge ±0,5%). Engine ini bikin kamu kalah <b>paling pelan</b> — bukan bikin menang pasti.<br><br><b>Jangan pernah</b> ambil Insurance/Even Money — EV-nya negatif selalu.<br><br>Target 50rb sentuh → <b>berhenti + withdraw</b>. Modal habis → berhenti, jangan deposit lagi.</div>
+    </div>
+  </section>
+</main>
+<span class="ms" id="ms"></span>
+<script src="engine.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
